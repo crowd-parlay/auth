@@ -1,3 +1,4 @@
+using Auth.OpenIddict.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,17 +14,34 @@ builder.Services.AddDbContext<DbContext>(options =>
 builder.Services.AddOpenIddict()
     .AddCore(options => options
         .UseEntityFrameworkCore()
-        .UseDbContext<DbContext>()
-    )
-    .AddServer(options => options
-        .AllowClientCredentialsFlow()
-        .SetTokenEndpointUris("/connect/token")
-        .AddEphemeralEncryptionKey()
-        .AddEphemeralSigningKey()
-        .RegisterScopes("api")
-        .UseAspNetCore()
-        .EnableTokenEndpointPassthrough()
-    );
+        .UseDbContext<DbContext>())
+    .AddServer(options =>
+    {
+        options
+            .AllowClientCredentialsFlow()
+            .AllowAuthorizationCodeFlow()
+            .RequireProofKeyForCodeExchange();
+
+        options
+            .SetAuthorizationEndpointUris("/connect/authorize")
+            .SetTokenEndpointUris("/connect/token");
+
+        options
+            .AddEphemeralEncryptionKey()
+            .AddEphemeralSigningKey()
+            .DisableAccessTokenEncryption();
+
+        options
+            .RegisterScopes("api")
+            .RegisterScopes("weather");
+
+        options
+            .UseAspNetCore()
+            .EnableAuthorizationEndpointPassthrough()
+            .EnableTokenEndpointPassthrough();
+    });
+
+builder.Services.AddHostedService<TestData>();
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>

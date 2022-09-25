@@ -8,7 +8,7 @@ namespace Auth.OpenIddict.Controllers;
 
 public class AccountController : ControllerBase
 {
-    [HttpPost]
+    [HttpPost("/account/login")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Login(LoginDto model)
     {
